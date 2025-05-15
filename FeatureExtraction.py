@@ -17,8 +17,7 @@ df_p3_noexo.head()
 # features.head()
 
 
-# Functions for Calculating Features from data
-
+# Calculations for Feature Extraction from Project_Guide
 def compute_emg_features(signal):
     return {
         'mean': np.mean(signal),
