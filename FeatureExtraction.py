@@ -57,9 +57,9 @@ for df in dfs:
     accel_features = compute_accel_features(df['ACC X (G)'], df['ACC Y (G)'], df['ACC Z (G)'])
     gyro_features = compute_gyro_features(df['GYRO X (deg/s)'], df['GYRO Y (deg/s)'], df['GYRO Z (deg/s)'])
     features = {
-        'emg': emg_feats,
-        'accel': accel_feats,
-        'gyro': gyro_feats
+        'emg': emg_features,
+        'accel': accel_features,
+        'gyro': gyro_features
     }
     feature_sets.append(features)
 
