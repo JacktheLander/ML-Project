@@ -5,6 +5,7 @@ df_p3_exo = pd.read_csv("P3_Exo_1_0.csv",skiprows=skiprow_num) #first run, male
 df_p3_noexo = pd.read_csv("P3_NoExo_1_0.csv", skiprows=skiprow_num) #second run, male
 df_p4_exo = pd.read_csv("P4_Exo_1_0.csv", skiprows=skiprow_num) #1st run female
 df_p4_noexo = pd.read_csv("P4_NoExo_1_0.csv", skiprows=skiprow_num) #2nd run female
+dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo]
 
 # # Show the head of the data
 # df_p3_exo.describe()
@@ -15,7 +16,6 @@ df_p3_noexo.head()
 # # Choose inputs
 # features = df_p3_exo[['EMG 1 (mV)', 'ACC X (G)', 'ACC Y (G)', 'ACC Z (G)', 'GYRO X (deg/s)', 'GYRO Y (deg/s)', 'GYRO Z (deg/s)']].dropna()
 # features.head()
-
 
 # Calculations for Feature Extraction from Project_Guide
 def compute_emg_features(signal):
@@ -49,7 +49,8 @@ def compute_gyro_features(w_x, w_y, w_z):
     }
     return features    
 
-# Run functions for each feature type for p3_exo data
-emg_features = compute_emg_features(df_p3_exo['EMG 1 (mV)'])
-accel_features = compute_accel_features(df_p3_exo['ACC X (G)', 'ACC Y (G)', 'ACC Z (G)'])
-gyro_features = compute_gyro_features(df_p3_exo['GYRO X (deg/s)', 'GYRO Y (deg/s)', 'GYRO Z (deg/s)'])
+# Run functions to extract features for each dataframe
+for df in dfs:
+    emg_features = compute_emg_features(df['EMG 1 (mV)'])
+    accel_features = compute_accel_features(df['ACC X (G)'], df['ACC Y (G)'], df['ACC Z (G)'])
+    gyro_features = compute_gyro_features(df['GYRO X (deg/s)'], df['GYRO Y (deg/s)'], df['GYRO Z (deg/s)'])
