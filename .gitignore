@@ -1,0 +1,7 @@
+*.csv
+*.o
+*.exe
+*.bin
+*.pyc
+*.pyo
+
