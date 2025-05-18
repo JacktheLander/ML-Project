@@ -26,7 +26,7 @@ def read_run(filename, skiprows=7): #skip the first 7 rows (freq/cycle time fiel
                     #  names=header,
                      usecols = usecols,
                      on_bad_lines='skip') 
-    df.columns = ['RDelt_TimeSeries', 'RDelt_MilliVolts', 'RDelt_Acc X Time Series(s)', 'RDelt_ACC X (G)', 'RDelt_Acc Y Time Series(s)',   'RDelt_ACC Y (G)',  'RDelt_Acc Z Time Series(s)', 'RDelt_ACC Z (G)','RDelt_GyroXTime Series(s)', 'RDelt_GYRO X (deg/s)','RDelt_GyroYTime Series(s)', 'RDelt_GYRO Y (deg/s)', 'RDelt_GyroZTime Series(s)', 'RDelt_GYRO Z (deg/s)',
+    df.columns = ['RDelt_EMG_TimeSeries', 'RDelt_EMG_MilliVolts', 'RDelt_IMU_Acc X Time Series(s)', 'RDelt_ACC X (G)', 'RDelt_Acc Y Time Series(s)',   'RDelt_ACC Y (G)',  'RDelt_Acc Z Time Series(s)', 'RDelt_ACC Z (G)','RDelt_GyroXTime Series(s)', 'RDelt_GYRO X (deg/s)','RDelt_GyroYTime Series(s)', 'RDelt_GYRO Y (deg/s)', 'RDelt_GyroZTime Series(s)', 'RDelt_GYRO Z (deg/s)',
                  'LDelt_TimeSeries', 'LDelt_MilliVolts', 'LDelt_Acc X Time Series(s)', 'LDelt_ACC X (G)', 'LDelt_Acc Y Time Series(s)',   'LDelt_ACC Y (G)',  'LDelt_Acc Z Time Series(s)', 'LDelt_ACC Z (G)','LDelt_GyroXTime Series(s)', 'LDelt_GYRO X (deg/s)','LDelt_GyroYTime Series(s)', 'LDelt_GYRO Y (deg/s)', 'LDelt_GyroZTime Series(s)', 'LDelt_GYRO Z (deg/s)',
                  'RBicep_TimeSeries', 'RBicep_MilliVolts', 'RBicep_Acc X Time Series(s)', 'RBicep_ACC X (G)', 'RBicep_Acc Y Time Series(s)',   'RBicep_ACC Y (G)',  'RBicep_Acc Z Time Series(s)', 'RBicep_ACC Z (G)','RBicep_GyroXTime Series(s)', 'RBicep_GYRO X (deg/s)','RBicep_GyroYTime Series(s)', 'RBicep_GYRO Y (deg/s)', 'RBicep_GyroZTime Series(s)', 'RBicep_GYRO Z (deg/s)',
                  'LBicep_TimeSeries', 'LBicep_MilliVolts', 'LBicep_Acc X Time Series(s)', 'LBicep_ACC X (G)', 'LBicep_Acc Y Time Series(s)',   'LBicep_ACC Y (G)',  'LBicep_Acc Z Time Series(s)', 'LBicep_ACC Z (G)','LBicep_GyroXTime Series(s)', 'LBicep_GYRO X (deg/s)','LBicep_GyroYTime Series(s)', 'LBicep_GYRO Y (deg/s)', 'LBicep_GyroZTime Series(s)', 'LBicep_GYRO Z (deg/s)'
@@ -34,15 +34,24 @@ def read_run(filename, skiprows=7): #skip the first 7 rows (freq/cycle time fiel
     return df
 
 def column_clean(df, run_num, gender):
-    extr_time_series = ['RDelt_Acc X Time Series(s)', 'RDelt_Acc Y Time Series(s)', 'RDelt_Acc Z Time Series(s)', 'RDelt_GyroXTime Series(s)', 'RDelt_GyroYTime Series(s)', 'RDelt_GyroZTime Series(s)', 'LDelt_TimeSeries', 'LDelt_Acc X Time Series(s)', 'LDelt_Acc Y Time Series(s)', 'LDelt_Acc Z Time Series(s)', 'LDelt_GyroXTime Series(s)', 'LDelt_GyroYTime Series(s)', 'LDelt_GyroZTime Series(s)', 'RBicep_TimeSeries', 'RBicep_Acc X Time Series(s)', 'RBicep_Acc Y Time Series(s)', 'RBicep_Acc Z Time Series(s)', 'RBicep_GyroXTime Series(s)', 'RBicep_GyroYTime Series(s)', 'RBicep_GyroZTime Series(s)', 'LBicep_TimeSeries', 'LBicep_Acc X Time Series(s)', 'LBicep_Acc Y Time Series(s)', 'LBicep_Acc Z Time Series(s)', 'LBicep_GyroXTime Series(s)', 'LBicep_GyroYTime Series(s)', 'LBicep_GyroZTime Series(s)']
+    #remove all time series columns except RDelt_EMG_TimeSeries' and 'RDelt_IMU_Acc X Time Series(s)', so keep time scale for both EMG and IMU 
+    extr_time_series = [ 'RDelt_Acc Y Time Series(s)', 'RDelt_Acc Z Time Series(s)', 'RDelt_GyroXTime Series(s)',
+                         'RDelt_GyroYTime Series(s)', 'RDelt_GyroZTime Series(s)', 'LDelt_TimeSeries', 'LDelt_Acc X Time Series(s)', 
+                         'LDelt_Acc Y Time Series(s)', 'LDelt_Acc Z Time Series(s)', 'LDelt_GyroXTime Series(s)',
+                         'LDelt_GyroYTime Series(s)', 'LDelt_GyroZTime Series(s)', 'RBicep_TimeSeries', 'RBicep_Acc X Time Series(s)',
+                         'RBicep_Acc Y Time Series(s)', 'RBicep_Acc Z Time Series(s)', 'RBicep_GyroXTime Series(s)',
+                         'RBicep_GyroYTime Series(s)', 'RBicep_GyroZTime Series(s)', 'LBicep_TimeSeries', 'LBicep_Acc X Time Series(s)',
+                         'LBicep_Acc Y Time Series(s)', 'LBicep_Acc Z Time Series(s)', 'LBicep_GyroXTime Series(s)', 
+                         'LBicep_GyroYTime Series(s)', 'LBicep_GyroZTime Series(s)']
+    
     df = df.drop(extr_time_series, axis = 1)
-    measurement_cols = [col for col in df.columns if (('ACC' in col or 'GYRO' in col) and 'Time Series' not in col)] #exclude mV and time cols
-    df[measurement_cols] = df[measurement_cols].replace(['', ' ', 'NA', None], np.nan) #stdize missing data
-    rows_val_meas = df[measurement_cols].notnull().any(axis=1)
-    last_idx = rows_val_meas[::-1].idxmax() #this will go get the last index of the measurement data 
-    df = df.iloc[:last_idx + 1].reset_index(drop=True)
+    # measurement_cols = [col for col in df.columns if (('ACC' in col or 'GYRO' in col) and 'Time Series' not in col)] #exclude mV and time cols
+    # df.columns = df.columns.str.strip()           # Remove leading/trailing spaces (Yuxuan)
+    # df = df.apply(pd.to_numeric, errors='coerce') # Conver  t everything to numeric (Yuxuan)
+    df = df.replace(['', ' ', 'NA', None], np.nan) #stdize missing data
     df['gender'] = gender
     df['run_num'] = run_num
+    df.to_csv("test.csv")
     return df 
 
 def preprocessing(full_df):
