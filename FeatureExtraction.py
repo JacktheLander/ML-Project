@@ -3,7 +3,6 @@ import numpy as np
 from dataCleaning import read_run, column_clean, preprocessing
 import pdb
 
-
 def overall_cleaning():
     df_p3_exo = read_run("P3_Exo_1_0.csv") # first run, male
     df_p3_noexo = read_run("P3_NoExo_1_0.csv") # second run, male
@@ -15,6 +14,7 @@ def overall_cleaning():
     df_p4_exo = column_clean(df_p4_exo, run_num = 1, gender = 'female')
     df_p4_noexo = column_clean(df_p4_noexo, run_num = 2, gender = 'female')
     combined_df = pd.concat([df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo], ignore_index=True)
+    pdb.set_trace()
     dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo] #jack's list for the data cleaning he does later. 
     # # Show the head of the data
     # df_p3_exo.describe()

@@ -16,10 +16,8 @@ import pdb
 #get the rest of the data following them. 
 
 #also, data points end at the bottom when sensors are stopped, but time/mV measurements will keep going, so must trim those too for each run
-#
-
-
-
+#went ahead and fixed up time series rows, and added gender/run# column
+#still need to break up redundant columns into a sensor # column, could maybe use df.melt
 def read_run(filename, skiprows=7): #skip the first 7 rows (freq/cycle time fields as well as metadata)
     usecols = list(range(0, 56)) 
     df = pd.read_csv(filename, low_memory = False, 
