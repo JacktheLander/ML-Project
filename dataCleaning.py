@@ -54,5 +54,13 @@ def column_clean(df, run_num, gender):
     df.to_csv("test.csv")
     return df 
 
+def create_sensor_col(full_df): 
+    df_melted = full_df.melt(var_name="measurement_type", value_name="value")
+    # Extract the sensor location from the column names
+    df_melted["sensor_location"] = df_melted["measurement_type"].str.extract(r'^(RDelt|LDelt|RBicep|LBicep)')
+    # Remove the sensor location prefix from the measurement type column
+    df_melted["measurement_type"] = df_melted["measurement_type"].str.replace(r'^(RDelt|LDelt|RBicep|LBicep)_', '', regex=True)
+    pdb.set_trace()
+    
 def preprocessing(full_df):
     pass

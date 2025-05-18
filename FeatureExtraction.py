@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from dataCleaning import read_run, column_clean, preprocessing
+from dataCleaning import read_run, column_clean, preprocessing, create_sensor_col
 import pdb
 
 def overall_cleaning():
@@ -13,8 +13,9 @@ def overall_cleaning():
     df_p3_noexo = column_clean(df_p3_noexo, run_num = 1, gender = 'male')
     df_p4_exo = column_clean(df_p4_exo, run_num = 2, gender = 'female')
     df_p4_noexo = column_clean(df_p4_noexo, run_num = 1, gender = 'female')
-    combined_df = pd.concat([df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo], ignore_index=True)
-    dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo] #jack's list for the data cleaning he does later. 
+    dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo] #jack's list for the data cleaning he does later.
+    combined_df = pd.concat(dfs, ignore_index=True) 
+    create_sensor_col(combined_df)
     # # Show the head of the data
     # df_p3_exo.describe()
     df_p3_noexo.head()
