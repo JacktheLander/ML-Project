@@ -23,3 +23,7 @@ We extract EMG and IMU features and train classification models to distinguish b
 ## Next?
 - Analyze additional sensors: Right Delt, Left Bicep, Left Delt
 - Explore multi-sensor feature fusion
+
+## Reference
+- Use of a Wearable Electromyography Armband to Detect Lift-Lower Tasks and Classify Hand Loads
+- https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4743121
