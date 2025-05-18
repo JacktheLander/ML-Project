@@ -1,21 +1,47 @@
 import pandas as pd
 import numpy as np
-skiprow_num = 5
-df_p3_exo = pd.read_csv("P3_Exo_1_0.csv",skiprows=skiprow_num) #first run, male
-df_p3_noexo = pd.read_csv("P3_NoExo_1_0.csv", skiprows=skiprow_num) #second run, male
-df_p4_exo = pd.read_csv("P4_Exo_1_0.csv", skiprows=skiprow_num) #1st run female
-df_p4_noexo = pd.read_csv("P4_NoExo_1_0.csv", skiprows=skiprow_num) #2nd run female
-dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo]
+from dataCleaning import read_run, column_clean, preprocessing
+import pdb
 
-# # Show the head of the data
-# df_p3_exo.describe()
-df_p3_noexo.head()
-# df_p4_exo.head()
-# df_p4_noexo.head()
+def overall_cleaning():
+    df_p3_exo = read_run("P3_Exo_1_0.csv") # first run, male
+    df_p3_noexo = read_run("P3_NoExo_1_0.csv") # second run, male
+    df_p4_exo = read_run("P4_Exo_1_0.csv") # 1st run female
+    df_p4_noexo = read_run("P4_NoExo_1_0.csv") # 2nd run female
 
-# # Choose inputs
-# features = df_p3_exo[['EMG 1 (mV)', 'ACC X (G)', 'ACC Y (G)', 'ACC Z (G)', 'GYRO X (deg/s)', 'GYRO Y (deg/s)', 'GYRO Z (deg/s)']].dropna()
-# features.head()
+    df_p3_exo = column_clean(df_p3_exo, run_num = 1, gender = 'male')
+    df_p3_noexo = column_clean(df_p3_noexo, run_num = 2, gender = 'male')
+    df_p4_exo = column_clean(df_p4_exo, run_num = 1, gender = 'female')
+    df_p4_noexo = column_clean(df_p4_noexo, run_num = 2, gender = 'female')
+    combined_df = pd.concat([df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo], ignore_index=True)
+    pdb.set_trace()
+    dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo] #jack's list for the data cleaning he does later. 
+    # # Show the head of the data
+    # df_p3_exo.describe()
+    df_p3_noexo.head()
+    # df_p4_exo.head()
+    # df_p4_noexo.head()
+    # # Choose inputs
+    # features = df_p3_exo[['EMG 1 (mV)', 'ACC X (G)', 'ACC Y (G)', 'ACC Z (G)', 'GYRO X (deg/s)', 'GYRO Y (deg/s)', 'GYRO Z (deg/s)']].dropna()
+    # features.head()
+    feature_sets = []
+    # Run functions to extract features for each dataframe
+    #CP: does this make sure to remove the redundant time series columns?
+    #can keep  ACC X Time Series (s) in each sensor group, and remove any other column with 'Time Series (s)' in its name 
+    for df in dfs:
+        emg_features = compute_emg_features(df['EMG 1 (mV)'])
+        accel_features = compute_accel_features(df['ACC X (G)'], df['ACC Y (G)'], df['ACC Z (G)'])
+        gyro_features = compute_gyro_features(df['GYRO X (deg/s)'], df['GYRO Y (deg/s)'], df['GYRO Z (deg/s)'])
+        features = {
+            'emg': emg_features,
+            'accel': accel_features,
+            'gyro': gyro_features
+        }
+        feature_sets.append(features)
+
+    # feature_sets now contains extracted features for each df
+    p3exo_feats, p3noexo_feats, p4exo_feats, p4noexo_feats = feature_sets
+    return p3exo_feats, p3noexo_feats, p4exo_feats, p4noexo_feats
 
 # Calculations for Feature Extraction from Project_Guide
 def compute_emg_features(signal):
@@ -49,19 +75,6 @@ def compute_gyro_features(w_x, w_y, w_z):
     }
     return features    
 
-feature_sets = []
 
-# Run functions to extract features for each dataframe
-for df in dfs:
-    emg_features = compute_emg_features(df['EMG 1 (mV)'])
-    accel_features = compute_accel_features(df['ACC X (G)'], df['ACC Y (G)'], df['ACC Z (G)'])
-    gyro_features = compute_gyro_features(df['GYRO X (deg/s)'], df['GYRO Y (deg/s)'], df['GYRO Z (deg/s)'])
-    features = {
-        'emg': emg_features,
-        'accel': accel_features,
-        'gyro': gyro_features
-    }
-    feature_sets.append(features)
-
-# feature_sets now contains extracted features for each df
-p3exo_feats, p3noexo_feats, p4exo_feats, p4noexo_feats = feature_sets
+if __name__ == '__main__':
+    p3exo_feats, p3noexo_feats, p4exo_feats, p4noexo_feats = overall_cleaning()
