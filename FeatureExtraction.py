@@ -7,8 +7,10 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelBinarizer
+from sklearn.metrics import roc_curve, auc
+from sklearn.preprocessing import LabelEncoder
 import seaborn as sns
-
 
 
 
@@ -186,3 +188,39 @@ for feature in top_features:
     plt.tight_layout()
     plt.show()
 
+# Initialize the Random Forest classifier with 100 trees
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+# Train the model using the training data
+rf_model.fit(X_train, y_train)
+
+# Predict class probabilities on the test set
+y_prob_rf = rf_model.predict_proba(X_test)
+
+# Encode string labels into binary values (e.g., 'Exo' = 1, 'NoExo' = 0)
+le = LabelEncoder()
+y_test_bin = le.fit_transform(y_test)
+
+# Identify the index of the positive class (usually 'Exo')
+pos_class_index = list(rf_model.classes_).index(le.classes_[1])
+
+# Extract the predicted probabilities for the positive class
+y_scores = y_prob_rf[:, pos_class_index]
+
+# Compute the False Positive Rate and True Positive Rate for ROC curve
+fpr, tpr, _ = roc_curve(y_test_bin, y_scores)
+
+# Calculate the Area Under the Curve (AUC) score
+roc_auc = auc(fpr, tpr)
+
+# Plot the ROC curve
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, label=f"Random Forest (AUC = {roc_auc:.2f})", lw=2)
+plt.plot([0, 1], [0, 1], linestyle="--", color="gray")
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("ROC Curve - Random Forest (Exo vs NoExo)")
+plt.legend(loc="lower right")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
