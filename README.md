@@ -16,6 +16,22 @@ We extract EMG and IMU features and train classification models to distinguish b
 3. Modeling: Trained Logistic Regression, KNN, Decision Tree, and Random Forest
 4. Evaluation: Confusion matrix, ROC curve, feature importance, and boxplot
 
+## Feature Matrix
+
+- After rolling window feature extraction, we construct(current):
+
+Feature Matrix (X): shape = (n_samples, n_features)  
+  - Each row: a 0.2second window of Right Bicep sensor data  
+  - Each column: a computed feature (e.g., emg_mean, gyro_mean, accel_total)
+
+Label Vector (y): shape = (n_samples,)  
+  - Each element: either Exo or NoExo
+
+- Example:  
+  - X: (500, 13)  
+  - y: (500,)  
+
+
 ## Key Findings
 - Random Forest showed the highest performance
 - Features like gyro_mean and accel_mean are most important
