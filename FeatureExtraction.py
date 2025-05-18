@@ -1,67 +1,188 @@
 import pandas as pd
 import numpy as np
-skiprow_num = 5
-df_p3_exo = pd.read_csv("P3_Exo_1_0.csv",skiprows=skiprow_num) #first run, male
-df_p3_noexo = pd.read_csv("P3_NoExo_1_0.csv", skiprows=skiprow_num) #second run, male
-df_p4_exo = pd.read_csv("P4_Exo_1_0.csv", skiprows=skiprow_num) #1st run female
-df_p4_noexo = pd.read_csv("P4_NoExo_1_0.csv", skiprows=skiprow_num) #2nd run female
-dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo]
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# # Show the head of the data
-# df_p3_exo.describe()
-df_p3_noexo.head()
-# df_p4_exo.head()
-# df_p4_noexo.head()
 
-# # Choose inputs
-# features = df_p3_exo[['EMG 1 (mV)', 'ACC X (G)', 'ACC Y (G)', 'ACC Z (G)', 'GYRO X (deg/s)', 'GYRO Y (deg/s)', 'GYRO Z (deg/s)']].dropna()
-# features.head()
 
-# Calculations for Feature Extraction from Project_Guide
+
+# Define the CSV file paths and associated conditions (Exo/NoExo)
+file_paths = [
+    ("P3_Exo", "/content/P3_Exo_1_0.csv", "Exo"),
+    ("P3_NoExo", "/content/P3_NoExo_1_0.csv", "NoExo"),
+    ("P4_Exo", "/content/P4_Exo_1_0.csv", "Exo"),
+    ("P4_NoExo", "/content/P4_NoExo_1_0.csv", "NoExo")
+]
+
+# Column names for Sensor 1 (Right Bicep)
+SENSOR1_COLS = ['EMG', 'ACC_X', 'ACC_Y', 'ACC_Z', 'GYRO_X', 'GYRO_Y', 'GYRO_Z']
+
+# Load CSV files, extract Sensor 1 columns, and clean missing values
+def load_and_prepare():
+    data = []
+    for name, path, label in file_paths:
+        try:
+            df = pd.read_csv(path, skiprows=8, header=None, low_memory=False)
+            df = df.iloc[:, [1, 3, 5, 7, 9, 11, 13]].copy()
+            df.columns = SENSOR1_COLS
+            df = df.apply(pd.to_numeric, errors='coerce').dropna()
+            data.append((name, df, label))
+        except Exception as e:
+            print(f"Error loading {name}: {e}")
+    return data
+
+
+# Feature extraction functions
+
+# EMG features: mean, max, min, std, RMS
 def compute_emg_features(signal):
     return {
-        'mean': np.mean(signal),
-        'max': np.max(signal),
-        'min': np.min(signal),
-        'std': np.std(signal),
-        'rms': np.sqrt(np.mean(signal**2))
+        'emg_mean': np.mean(signal),
+        'emg_max': np.max(signal),
+        'emg_min': np.min(signal),
+        'emg_std': np.std(signal),
+        'emg_rms': np.sqrt(np.mean(signal**2))
     }
 
+# Accelerometer features: magnitude-based stats
 def compute_accel_features(a_x, a_y, a_z):
     a_mag = np.sqrt(a_x**2 + a_y**2 + a_z**2)
-    
-    features = {
-        'peak_accel': np.max(a_mag),
-        'mean_accel': np.mean(a_mag),
-        'total_accel': np.sqrt(np.mean(a_x**2) + np.mean(a_y**2) + np.mean(a_z**2)),
+    return {
+        'accel_peak': np.max(a_mag),
+        'accel_mean': np.mean(a_mag),
+        'accel_total': np.sqrt(np.mean(a_x**2) + np.mean(a_y**2) + np.mean(a_z**2)),
         'accel_range': np.max(a_mag) - np.min(a_mag)
     }
-    return features
 
+# Gyroscope features: magnitude-based stats
 def compute_gyro_features(w_x, w_y, w_z):
     w_mag = np.sqrt(w_x**2 + w_y**2 + w_z**2)
-    
-    features = {
-        'peak_angular_vel': np.max(w_mag),
-        'mean_angular_vel': np.mean(w_mag),
-        'total_angular_vel': np.sqrt(np.mean(w_x**2) + np.mean(w_y**2) + np.mean(w_z**2)),
-        'angular_vel_range': np.max(w_mag) - np.min(w_mag)
+    return {
+        'gyro_peak': np.max(w_mag),
+        'gyro_mean': np.mean(w_mag),
+        'gyro_total': np.sqrt(np.mean(w_x**2) + np.mean(w_y**2) + np.mean(w_z**2)),
+        'gyro_range': np.max(w_mag) - np.min(w_mag)
     }
-    return features    
 
-feature_sets = []
+# Extract rolling window features for EMG, ACC, and GYRO signals
+def extract_features_with_rolling_window(df, window_size=250, step_size=125):
+    features = []
+    for start in range(0, len(df) - window_size + 1, step_size):
+        window = df.iloc[start:start+window_size]
+        feats = {}
+        feats.update(compute_emg_features(window['EMG']))
+        feats.update(compute_accel_features(window['ACC_X'], window['ACC_Y'], window['ACC_Z']))
+        feats.update(compute_gyro_features(window['GYRO_X'], window['GYRO_Y'], window['GYRO_Z']))
+        features.append(feats)
+    return pd.DataFrame(features)
 
-# Run functions to extract features for each dataframe
-for df in dfs:
-    emg_features = compute_emg_features(df['EMG 1 (mV)'])
-    accel_features = compute_accel_features(df['ACC X (G)'], df['ACC Y (G)'], df['ACC Z (G)'])
-    gyro_features = compute_gyro_features(df['GYRO X (deg/s)'], df['GYRO Y (deg/s)'], df['GYRO Z (deg/s)'])
-    features = {
-        'emg': emg_features,
-        'accel': accel_features,
-        'gyro': gyro_features
-    }
-    feature_sets.append(features)
+# Run feature extraction pipeline for all subjects
+data_entries = []
+for name, df_clean, label in load_and_prepare():
+    print(f"{name} cleaned length: {len(df_clean)}")
+    feats = extract_features_with_rolling_window(df_clean)
+    feats['subject'] = name
+    feats['condition'] = label
+    data_entries.append(feats)
 
-# feature_sets now contains extracted features for each df
-p3exo_feats, p3noexo_feats, p4exo_feats, p4noexo_feats = feature_sets
+# Combine extracted features into a single DataFrame
+final_df = pd.concat(data_entries, ignore_index=True)
+print(final_df.head())
+
+# Split features and target
+X = final_df.drop(columns=['subject', 'condition'])
+y = final_df['condition']
+
+# Train-test split (70% train, 30% test), stratified by label
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+
+print(f"Train shape: {X_train.shape}, Test shape: {X_test.shape}")
+print(f"Train label distribution:\n{y_train.value_counts()}\n")
+print(f"Test label distribution:\n{y_test.value_counts()}\n")
+
+
+
+
+# Define classification models
+models = {
+    "Logistic Regression": LogisticRegression(max_iter=1000),
+    "KNN": KNeighborsClassifier(n_neighbors=5),
+    "Decision Tree": DecisionTreeClassifier(random_state=42),
+    "Random Forest": RandomForestClassifier(n_estimators=100, random_state=42)
+}
+
+results = {}
+
+# Train and evaluate each model
+for name, model in models.items():
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    acc = accuracy_score(y_test, y_pred)
+    cm = confusion_matrix(y_test, y_pred)
+    results[name] = (acc, cm)
+
+    # Print evaluation results
+    print(f"=== {name} ===")
+    print(f"Accuracy: {acc:.4f}")
+    print("Classification Report:\n", classification_report(y_test, y_pred))
+    print()
+
+    # Plot confusion matrix
+    plt.figure(figsize=(4,3))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=model.classes_, yticklabels=model.classes_)
+    plt.title(f"{name} Confusion Matrix")
+    plt.xlabel("Predicted")
+    plt.ylabel("True")
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+# Train Random Forest model to assess feature importance
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
+
+# Extract feature importance from trained model
+importances = rf.feature_importances_
+feature_names = X_train.columns
+importance_df = pd.DataFrame({
+    'feature': feature_names,
+    'importance': importances
+}).sort_values(by='importance', ascending=False)
+
+# Extract feature importance from trained model
+plt.figure(figsize=(10,6))
+sns.barplot(x='importance', y='feature', data=importance_df)
+plt.title("Feature Importance - Random Forest")
+plt.xlabel("Importance")
+plt.ylabel("Feature")
+plt.tight_layout()
+plt.show()
+
+
+
+
+# Select top features for condition-wise comparison
+top_features = [
+    'gyro_mean', 'accel_mean', 'gyro_total', 'gyro_range', 'gyro_peak'
+]
+
+# Draw boxplots to compare Exo vs NoExo for top features
+for feature in top_features:
+    plt.figure(figsize=(6, 4))
+    sns.boxplot(data=final_df, x='condition', y=feature)
+    plt.title(f"{feature} by Condition (Exo vs NoExo)")
+    plt.xlabel("Condition")
+    plt.ylabel(feature)
+    plt.tight_layout()
+    plt.show()
+
