@@ -9,15 +9,15 @@ def overall_cleaning():
     df_p4_exo = read_run("P4_Exo_1_0.csv") # 1st run female
     df_p4_noexo = read_run("P4_NoExo_1_0.csv") # 2nd female
 
-    df_p3_exo = column_clean(df_p3_exo, run_num = 2, gender = 'male')
-    df_p3_noexo = column_clean(df_p3_noexo, run_num = 1, gender = 'male')
-    df_p4_exo = column_clean(df_p4_exo, run_num = 2, gender = 'female')
-    df_p4_noexo = column_clean(df_p4_noexo, run_num = 1, gender = 'female')
+    df_p3_exo = column_clean(df_p3_exo)
+    df_p3_noexo = column_clean(df_p3_noexo)
+    df_p4_exo = column_clean(df_p4_exo)
+    df_p4_noexo = column_clean(df_p4_noexo)
 
-    df_p3_exo = create_sensor_col(df_p3_exo)
-    df_p3_noexo = create_sensor_col(df_p3_noexo)
-    df_p4_exo = create_sensor_col(df_p4_exo)
-    df_p4_noexo = create_sensor_col(df_p4_noexo)
+    df_p3_exo = create_sensor_col(df_p3_exo, run_num = 2, gender = 'male', exo=True)
+    df_p3_noexo = create_sensor_col(df_p3_noexo, run_num = 1, gender = 'male', exo=False)
+    df_p4_exo = create_sensor_col(df_p4_exo, run_num = 1, gender = 'female', exo=True)
+    df_p4_noexo = create_sensor_col(df_p4_noexo, run_num = 2, gender = 'female', exo=False)
 
     dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo] #jack's list for the data cleaning he does later.
     combined_df = pd.concat(dfs, ignore_index=True)
