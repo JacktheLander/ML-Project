@@ -31,7 +31,7 @@ def read_run(filename, skiprows=7): #skip the first 7 rows (freq/cycle time fiel
                  'RBicep_TimeSeries', 'RBicep_MilliVolts', 'RBicep_Acc X Time Series(s)', 'RBicep_ACC X (G)', 'RBicep_Acc Y Time Series(s)',   'RBicep_ACC Y (G)',  'RBicep_Acc Z Time Series(s)', 'RBicep_ACC Z (G)','RBicep_GyroXTime Series(s)', 'RBicep_GYRO X (deg/s)','RBicep_GyroYTime Series(s)', 'RBicep_GYRO Y (deg/s)', 'RBicep_GyroZTime Series(s)', 'RBicep_GYRO Z (deg/s)',
                  'LBicep_TimeSeries', 'LBicep_MilliVolts', 'LBicep_Acc X Time Series(s)', 'LBicep_ACC X (G)', 'LBicep_Acc Y Time Series(s)',   'LBicep_ACC Y (G)',  'LBicep_Acc Z Time Series(s)', 'LBicep_ACC Z (G)','LBicep_GyroXTime Series(s)', 'LBicep_GYRO X (deg/s)','LBicep_GyroYTime Series(s)', 'LBicep_GYRO Y (deg/s)', 'LBicep_GyroZTime Series(s)', 'LBicep_GYRO Z (deg/s)'
                 ]
-    return df
+    return df #raw data 
 
 def column_clean(df, run_num, gender):
     #remove all time series columns except RDelt_EMG_TimeSeries' and 'RDelt_IMU_Acc X Time Series(s)', so keep time scale for both EMG and IMU 
@@ -51,16 +51,36 @@ def column_clean(df, run_num, gender):
     df = df.replace(['', ' ', 'NA', None], np.nan) #stdize missing data
     df['gender'] = gender
     df['run_num'] = run_num
-    df.to_csv("test.csv")
     return df 
 
-def create_sensor_col(full_df): 
-    df_melted = full_df.melt(var_name="measurement_type", value_name="value")
-    # Extract the sensor location from the column names
-    df_melted["sensor_location"] = df_melted["measurement_type"].str.extract(r'^(RDelt|LDelt|RBicep|LBicep)')
-    # Remove the sensor location prefix from the measurement type column
-    df_melted["measurement_type"] = df_melted["measurement_type"].str.replace(r'^(RDelt|LDelt|RBicep|LBicep)_', '', regex=True)
+def create_sensor_col(df): 
+    columns_to_keep = ['RDelt_EMG_TimeSeries', 'RDelt_IMU_Acc X Time Series(s)', 'gender', 'run_num']
     pdb.set_trace()
+    # Identify all measurement columns, including EMG millivolts
+    measurement_columns = [col for col in df.columns if any(prefix in col for prefix in ['RDelt', 'LDelt', 'RBicep', 'LBicep']) and col not in columns_to_keep]
+    df_melted = df.melt(id_vars=columns_to_keep, value_vars=measurement_columns, var_name="sensor_measurement", value_name="value")
     
+    # Extract the Sensor Body Position
+    df_melted["Sensor_Body_Position"] = df_melted["sensor_measurement"].str.extract(r'^(RDelt|LDelt|RBicep|LBicep)')
+    # Extract measurement type, including EMG millivolts
+    df_melted["measurement_type"] = df_melted["sensor_measurement"].str.extract(r'_(EMG_MilliVolts|MilliVolts|ACC X|ACC Y|ACC Z|GYRO X|GYRO Y|GYRO Z)')    # Drop the original sensor_measurement column
+    df_melted = df_melted.drop(columns=["sensor_measurement"])    # Pivot the DataFrame so each measurement type becomes a separate column
+    df_melted["value"] = df_melted["value"].astype(str).str.strip() #make sure that values are clean if they're strings (no extra space)
+    df_melted["value"] = pd.to_numeric(df_melted["value"], errors="coerce") #make sure all values are cast to numeric
+    df_melted.fillna(np.nan, inplace=True)
+    # Pivot the DataFrame so each measurement type becomes a separate column
+    df_pivoted = df_melted.pivot_table(index=['Sensor_Body_Position', 'RDelt_EMG_TimeSeries', 'RDelt_IMU_Acc X Time Series(s)', 'gender', 'run_num'], 
+                                    columns='measurement_type', values='value')
+    df_pivoted.columns = df_pivoted.columns.get_level_values(0)
+    df_pivoted.columns = df_pivoted.columns.str.strip()
+    df_pivoted = df_pivoted.reset_index()
+    pdb.set_trace()
+    df_pivoted.to_csv("pivoted_df.csv")
+    return df_pivoted
+
+def standardize_time_series():
+    # interpolate()
+    pass
+
 def preprocessing(full_df):
     pass

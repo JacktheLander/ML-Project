@@ -4,7 +4,7 @@ from dataCleaning import read_run, column_clean, preprocessing, create_sensor_co
 import pdb
 
 def overall_cleaning():
-    df_p3_exo = read_run("P3_Exo_1_0.csv") # second run, male
+    df_p3_exo = read_run("P3_Exo_1_0.csv") # 2nd run, male
     df_p3_noexo = read_run("P3_NoExo_1_0.csv") # first run, male
     df_p4_exo = read_run("P4_Exo_1_0.csv") # 1st run female
     df_p4_noexo = read_run("P4_NoExo_1_0.csv") # 2nd female
@@ -13,9 +13,15 @@ def overall_cleaning():
     df_p3_noexo = column_clean(df_p3_noexo, run_num = 1, gender = 'male')
     df_p4_exo = column_clean(df_p4_exo, run_num = 2, gender = 'female')
     df_p4_noexo = column_clean(df_p4_noexo, run_num = 1, gender = 'female')
+
+    df_p3_exo = create_sensor_col(df_p3_exo)
+    df_p3_noexo = create_sensor_col(df_p3_noexo)
+    df_p4_exo = create_sensor_col(df_p4_exo)
+    df_p4_noexo = create_sensor_col(df_p4_noexo)
+
     dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo] #jack's list for the data cleaning he does later.
-    combined_df = pd.concat(dfs, ignore_index=True) 
-    create_sensor_col(combined_df)
+    combined_df = pd.concat(dfs, ignore_index=True)
+    
     # # Show the head of the data
     # df_p3_exo.describe()
     df_p3_noexo.head()
