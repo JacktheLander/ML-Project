@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np 
 import pdb 
 from modif_cols import tidy_emg_imu_as_measured 
+from UpsamplingIMU import upsample
 # Data Labels:
 # Label for EMG Data shared:
 #     Open CSV files to check what they look like. Use skiprows=5 and low_memory=False to load it properly (the top 5 rows are metadata)
@@ -52,46 +53,11 @@ def column_clean(df):
     df = df.replace(['', ' ', 'NA', None], np.nan) #stdize missing data
     return df 
 
+def standardize_time_series(df):
+    upsample(df)
+
+#melting and stuff
 def create_sensor_col(df, run_num, gender, exo): 
-    # muscles = ['RDelt', 'LDelt', 'RBicep', 'LBicep']
-    # # Identify all measurement columns for melting
-    # measurement_cols = [col for col in df.columns if any(muscle in col for muscle in muscles)]
-    # # Melt all measurement columns (EMG, ACC, GYRO)
-    # df_long = df.melt(
-    #     id_vars=['EMG_TimeSeries', 'IMU_TimeSeries'],
-    #     value_vars=measurement_cols,
-    #     var_name='sensor_measurement',
-    #     value_name='value'
-    # )
-    # # Extract Muscle, Sensor, and Axis from the column name
-    # df_long[['Muscle', 'Sensor', 'Axis']] = df_long['sensor_measurement'].str.extract(
-    #     r'^(RDelt|LDelt|RBicep|LBicep)_(EMG|ACC|GYRO)[ _]?(X|Y|Z)?'
-    # )
-    # # Build measurement type column for pivoting
-    # df_long['Measurement'] = np.where(
-    #     df_long['Sensor'] == 'EMG',
-    #     'EMG_MV',
-    #     df_long['Sensor'] + ' ' + df_long['Axis']
-    # )
-    # pdb.set_trace()
-
-    # # Pivot so each row is a Muscle-Timepoint, columns are measurement types
-    # tidy = df_long.pivot_table(
-    #     index=['EMG_TimeSeries', 'IMU_TimeSeries', 'Muscle'],
-    #     columns='Measurement',
-    #     values='value',
-    #     aggfunc='first'
-    # ).reset_index()
-    # # Flatten columns so pivot table multiindexes don't persist
-    # tidy.columns.name = None
-    # tidy = tidy.rename_axis(None, axis=1)
-    # #  sort columns
-    # columns_order = ['EMG_TimeSeries', 'IMU_TimeSeries', 'EMG_MV',
-    #                  'ACC X', 'ACC Y', 'ACC Z', 'GYRO X', 'GYRO Y', 'GYRO Z', 'Muscle']
-    # # Only include columns that actually exist in the data
-    # columns_order = [col for col in columns_order if col in tidy.columns]
-
-    # df_pivoted = tidy[columns_order]
     df_pivoted = tidy_emg_imu_as_measured(df)
     df_pivoted.columns = df_pivoted.columns.str.strip()
     pdb.set_trace()
@@ -103,10 +69,6 @@ def create_sensor_col(df, run_num, gender, exo):
     df_pivoted.to_csv("pivoted_df.csv")
     return df_pivoted
 
-
-def standardize_time_series():
-    # interpolate()
-    pass
 
 def preprocessing(full_df):
     pass

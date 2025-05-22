@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
-from dataCleaning import read_run, column_clean, preprocessing, create_sensor_col
+from dataCleaning import read_run, column_clean, preprocessing
+from dataCleaning import create_sensor_col, standardize_time_series
 import pdb
 
 def overall_cleaning():
@@ -13,6 +14,11 @@ def overall_cleaning():
     df_p3_noexo = column_clean(df_p3_noexo)
     df_p4_exo = column_clean(df_p4_exo)
     df_p4_noexo = column_clean(df_p4_noexo)
+    #upsample IMU to match EMG
+    standardize_time_series(df_p3_exo)
+    standardize_time_series(df_p3_noexo)
+    standardize_time_series(df_p4_exo)
+    standardize_time_series(df_p4_noexo)
 
     df_p3_exo = create_sensor_col(df_p3_exo, run_num = 2, gender = 'male', exo=True)
     df_p3_noexo = create_sensor_col(df_p3_noexo, run_num = 1, gender = 'male', exo=False)
@@ -21,7 +27,7 @@ def overall_cleaning():
 
     dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo] #jack's list for the data cleaning he does later.
     combined_df = pd.concat(dfs, ignore_index=True)
-    
+
     # # Show the head of the data
     # df_p3_exo.describe()
     df_p3_noexo.head()
