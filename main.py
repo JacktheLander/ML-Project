@@ -7,12 +7,11 @@ from evaluation import evaluate_model, plot_feature_importance
 
 import pandas as pd
 import numpy as np
-from data_loader import read_run, column_clean
+from dataCleaning import read_run, column_clean
 
 # Fully working implementation of process_all_files with strict handling
 def process_all_files():
     files = [
-        ("/content/P3_Exo_1_0.csv", 2, 'male', 'Exo'),
         ("/content/P3_NoExo_1_0.csv", 1, 'male', 'NoExo'),
         ("/content/P4_Exo_1_0.csv", 2, 'female', 'Exo'),
         ("/content/P4_NoExo_1_0.csv", 1, 'female', 'NoExo')
