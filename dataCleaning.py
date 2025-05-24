@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np 
 import pdb 
 from modif_cols import tidy_emg_imu_as_measured 
-from UpsamplingIMU import upsample
+from resampling import upsample, downsample
 # Data Labels:
 # Label for EMG Data shared:
 #     Open CSV files to check what they look like. Use skiprows=5 and low_memory=False to load it properly (the top 5 rows are metadata)
@@ -54,7 +54,8 @@ def column_clean(df):
     return df 
 
 def standardize_time_series(df):
-    upsample(df)
+    df = downsample(df)
+    return df
 
 #melting and stuff
 def create_sensor_col(df, run_num, gender, exo): 

@@ -27,7 +27,7 @@ def overall_cleaning():
 
     dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo] #jack's list for the data cleaning he does later.
     combined_df = pd.concat(dfs, ignore_index=True)
-
+    combined_df = standardize_time_series(combined_df)
     # # Show the head of the data
     # df_p3_exo.describe()
     df_p3_noexo.head()
@@ -50,7 +50,8 @@ def overall_cleaning():
             'gyro': gyro_features
         }
         feature_sets.append(features)
-
+    #TO-DO make Exo or No Exo variable?
+    #imputation/preprocessing
     # feature_sets now contains extracted features for each df
     p3exo_feats, p3noexo_feats, p4exo_feats, p4noexo_feats = feature_sets
     return p3exo_feats, p3noexo_feats, p4exo_feats, p4noexo_feats
