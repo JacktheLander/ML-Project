@@ -30,7 +30,7 @@ def overall_cleaning():
     combined_df = standardize_time_series(combined_df)
     # # Show the head of the data
     # df_p3_exo.describe()
-    df_p3_noexo.head()
+    # df_p3_noexo.head()
     # df_p4_exo.head()
     # df_p4_noexo.head()
     # # Choose inputs

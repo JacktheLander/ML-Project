@@ -1,0 +1,57 @@
+import pandas as pd
+import numpy as np
+
+def emg_to_imu_asof_all_muscles(df, emg_time_col='EMG_TimeSeries', imu_time_col='IMU_TimeSeries'):
+    """
+    For each muscle group, create a tidy DataFrame where each row is an EMG measurement,
+    with corresponding IMU data (if available) joined via pandas.merge_asof (backward).
+    IMU columns may have NaNs if not available at that EMG time.
+    Returns a concatenated DataFrame for all muscles with a 'Muscle' column.
+    """
+    muscle_names = []
+    for col in df.columns:
+        if '_EMG_MilliVolts' in col:
+            muscle = col.replace('_EMG_MilliVolts', '')
+            muscle_names.append(muscle)
+
+    all_muscles = []
+    for muscle in muscle_names:
+        # Build EMG DataFrame for this muscle
+        emg_df = pd.DataFrame({
+            'EMG_TimeSeries': pd.to_numeric(df[emg_time_col], errors='coerce'),
+            'EMG_MV': pd.to_numeric(df[f'{muscle}_EMG_MilliVolts'], errors='coerce')
+        }).dropna(subset=['EMG_TimeSeries', 'EMG_MV'])
+
+        # Build IMU DataFrame for this muscle
+        imu_df = pd.DataFrame({
+            'IMU_TimeSeries': pd.to_numeric(df[imu_time_col], errors='coerce'),
+            'ACC X': pd.to_numeric(df.get(f'{muscle}_ACC X (G)'), errors='coerce'),
+            'ACC Y': pd.to_numeric(df.get(f'{muscle}_ACC Y (G)'), errors='coerce'),
+            'ACC Z': pd.to_numeric(df.get(f'{muscle}_ACC Z (G)'), errors='coerce'),
+            'GYRO X': pd.to_numeric(df.get(f'{muscle}_GYRO X (deg/s)'), errors='coerce'),
+            'GYRO Y': pd.to_numeric(df.get(f'{muscle}_GYRO Y (deg/s)'), errors='coerce'),
+            'GYRO Z': pd.to_numeric(df.get(f'{muscle}_GYRO Z (deg/s)'), errors='coerce')
+        })
+
+        # Merge IMU onto EMG (backward: most recent IMU)
+        merged = pd.merge_asof(
+            emg_df.sort_values('EMG_TimeSeries'),
+            imu_df.sort_values('IMU_TimeSeries'),
+            left_on='EMG_TimeSeries',
+            right_on='IMU_TimeSeries',
+            direction='backward'
+        )
+
+        merged['Muscle'] = muscle
+        all_muscles.append(merged)
+
+    tidy = pd.concat(all_muscles, ignore_index=True)
+    # Order columns
+    cols = ['Muscle', 'EMG_TimeSeries', 'EMG_MV', 'IMU_TimeSeries',
+            'ACC X', 'ACC Y', 'ACC Z', 'GYRO X', 'GYRO Y', 'GYRO Z']
+    tidy = tidy[cols]
+    return tidy
+
+# Usage example:
+# tidy_df = emg_to_imu_asof_all_muscles(df)
+# tidy_df.to_csv('emg_imu_tidy.csv', index=False)

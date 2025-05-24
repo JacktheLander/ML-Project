@@ -53,6 +53,20 @@ def column_clean(df):
     df = df.replace(['', ' ', 'NA', None], np.nan) #stdize missing data
     return df 
 
+def bandpass_filter_emg(signal, fs=1259, lowcut=20, highcut=450, order=4):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
+    return filtfilt(b, a, signal)
+
+# IMU Low-pass Filter (<20Hz)
+def lowpass_filter_imu(signal, fs=148, cutoff=20, order=4):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low')
+    return filtfilt(b, a, signal)
+
 def standardize_time_series(df):
     df = downsample(df)
     return df
