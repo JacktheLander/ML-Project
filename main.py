@@ -4,7 +4,7 @@ from dataCleaning import read_run, column_clean, preprocessing
 from dataCleaning import create_sensor_col, standardize_time_series
 import pdb
 
-def overall_cleaning():
+def main_cleaning():
     df_p3_exo = read_run("P3_Exo_1_0.csv") # 2nd run, male
     df_p3_noexo = read_run("P3_NoExo_1_0.csv") # first run, male
     df_p4_exo = read_run("P4_Exo_1_0.csv") # 1st run female
@@ -56,38 +56,10 @@ def overall_cleaning():
     p3exo_feats, p3noexo_feats, p4exo_feats, p4noexo_feats = feature_sets
     return p3exo_feats, p3noexo_feats, p4exo_feats, p4noexo_feats
 
-# Calculations for Feature Extraction from Project_Guide
-def compute_emg_features(signal):
-    return {
-        'mean': np.mean(signal),
-        'max': np.max(signal),
-        'min': np.min(signal),
-        'std': np.std(signal),
-        'rms': np.sqrt(np.mean(signal**2))
-    }
 
-def compute_accel_features(a_x, a_y, a_z):
-    a_mag = np.sqrt(a_x**2 + a_y**2 + a_z**2)
-    
-    features = {
-        'peak_accel': np.max(a_mag),
-        'mean_accel': np.mean(a_mag),
-        'total_accel': np.sqrt(np.mean(a_x**2) + np.mean(a_y**2) + np.mean(a_z**2)),
-        'accel_range': np.max(a_mag) - np.min(a_mag)
-    }
-    return features
-
-def compute_gyro_features(w_x, w_y, w_z):
-    w_mag = np.sqrt(w_x**2 + w_y**2 + w_z**2)
-    
-    features = {
-        'peak_angular_vel': np.max(w_mag),
-        'mean_angular_vel': np.mean(w_mag),
-        'total_angular_vel': np.sqrt(np.mean(w_x**2) + np.mean(w_y**2) + np.mean(w_z**2)),
-        'angular_vel_range': np.max(w_mag) - np.min(w_mag)
-    }
-    return features    
+def main():
+    p3exo_feats, p3noexo_feats, p4exo_feats, p4noexo_feats = overall_cleaning()
 
 
 if __name__ == '__main__':
-    p3exo_feats, p3noexo_feats, p4exo_feats, p4noexo_feats = overall_cleaning()
+    main()
