@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.signal import butter, filtfilt
-from modif_cols import tidy_emg_imu_as_measured
+#from modif_cols import tidy_emg_imu_as_measured
 from resampling import downsample_rolling_window
 # Data Labels:
 # Label for EMG Data shared:
