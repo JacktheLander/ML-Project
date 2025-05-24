@@ -59,7 +59,64 @@ This project provides a comprehensive pipeline for analyzing and classifying EMG
      - `pattern_*.png`: Class-wise feature distributions
      - `confusion_matrix.png`: Classification results
 
-## Key Analysis Results
+## Model Evaluation and Hyperparameter Selection
+
+### Model Selection
+- **Algorithm**: Random Forest Classifier
+  - Rationale: 
+    - Handles non-linear relationships well
+    - Robust to outliers and noise
+    - Provides feature importance insights
+    - Good performance with mixed feature types
+    - Less prone to overfitting compared to single decision trees
+
+### Hyperparameter Selection
+- **Grid Search Parameters**:
+  ```python
+  param_grid = {
+      'n_estimators': [50, 100],      # Number of trees
+      'max_depth': [None, 10, 20],    # Tree depth
+      'min_samples_leaf': [1, 2],     # Minimum samples per leaf
+      'max_features': ['sqrt', 'log2'] # Features to consider for splits
+  }
+  ```
+- **Selection Rationale**:
+  1. `n_estimators`: 
+     - Limited to 50-100 to balance performance and computation time
+     - Higher values showed diminishing returns
+  2. `max_depth`: 
+     - None: Allow full tree growth
+     - 10, 20: Prevent overfitting
+  3. `min_samples_leaf`: 
+     - 1: Allow fine-grained splits
+     - 2: Prevent overfitting
+  4. `max_features`: 
+     - 'sqrt': Standard choice for classification
+     - 'log2': Alternative for high-dimensional data
+
+### Evaluation Metrics
+1. **Primary Metrics**:
+   - Accuracy: 94.15%
+   - F1 Score: 94.18%
+   - Rationale: 
+     - F1 score chosen as primary metric due to class balance importance
+     - Combines precision and recall effectively
+
+2. **Confusion Matrix Analysis**:
+   ```
+   [[88  4]
+    [ 7 89]]
+   ```
+   - True Negatives: 88
+   - False Positives: 4
+   - False Negatives: 7
+   - True Positives: 89
+   - Shows balanced performance across classes
+
+3. **Cross-Validation**:
+   - 3-fold cross-validation used
+   - Ensures robust performance estimation
+   - Prevents overfitting
 
 ### Feature Importance
 - Top 5 important features:
@@ -68,11 +125,6 @@ This project provides a comprehensive pipeline for analyzing and classifying EMG
   3. EMG RMS
   4. EMG MAV
   5. EMG WL
-
-### Model Performance
-- Accuracy: 94.15%
-- F1 Score: 94.18%
-- Balanced class performance
 
 ## Dependencies
 - pandas
