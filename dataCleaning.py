@@ -1,10 +1,11 @@
 
 import pandas as pd
 import numpy as np 
-import pdb 
+import pdb
+
+from sklearn.model_selection import train_test_split 
 from modif_cols import tidy_emg_imu_as_measured 
 from resampling import upsample, downsample
-from scipy.signal import filtfilt, butter
 
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -60,19 +61,6 @@ def column_clean(df):
     df = df.replace(['', ' ', 'NA', None], np.nan) #stdize missing data
     return df 
 
-def bandpass_filter_emg(signal, fs=1259, lowcut=20, highcut=450, order=4):
-    nyq = 0.5 * fs
-    low = lowcut / nyq
-    high = highcut / nyq
-    b, a = butter(order, [low, high], btype='band')
-    return filtfilt(b, a, signal)
-
-# IMU Low-pass Filter (<20Hz)
-def lowpass_filter_imu(signal, fs=148, cutoff=20, order=4):
-    nyq = 0.5 * fs
-    normal_cutoff = cutoff / nyq
-    b, a = butter(order, normal_cutoff, btype='low')
-    return filtfilt(b, a, signal)
 
 #melting and stuff
 def create_sensor_col(df, run_num, gender, exo): 
@@ -85,24 +73,42 @@ def create_sensor_col(df, run_num, gender, exo):
     df_pivoted.to_csv("pivoted_df.csv")
     return df_pivoted
 
-def preprocessing(full_df):
-    # num_attribs = ["longitude", "latitude", "housing_median_age", "total_rooms",
-    #             "total_bedrooms", "population", "households", "median_income"]
-    # cat_attribs = ["ocean_proximity"]
-    num_attribs = full_df.select_dtypes(include=['number']).columns.tolist()
-    cat_attribs = full_df.select_dtypes(include=['object', 'category', 'bool']).columns.tolist()
+def preprocessing_actions(full_df):
+    num_attribs = [
+        'EMG_MilliVolts_filtered',
+        'ACC X (G)_filtered',
+        'ACC Y (G)_filtered',
+        'ACC Z (G)_filtered',
+        'GYRO X (deg/s)_filtered',
+        'GYRO Y (deg/s)_filtered',
+        'GYRO Z (deg/s)_filtered',
+        # Add any other numerical features here
+    ]
+    cat_attribs = [
+        'BodyPart',
+        'gender'
+        #exo is the target variable
+    ]
+
     num_pipeline = Pipeline([
-    ("impute", SimpleImputer(strategy="median")),
-    ("standardize", StandardScaler()),
+        ("impute", SimpleImputer(strategy="median")),
+        ("standardize", StandardScaler()),
     ])
 
     cat_pipeline = Pipeline([
-    ("impute", SimpleImputer(strategy="most_frequent")),
-    ("oneHot", OneHotEncoder()),
+        ("impute", SimpleImputer(strategy="most_frequent")),
+        ("oneHot", OneHotEncoder()),
     ])
 
     preprocessing = ColumnTransformer([
-    ("num", num_pipeline, num_attribs),
-    ("cat", cat_pipeline, cat_attribs),
+        ("num", num_pipeline, num_attribs),
+        ("cat", cat_pipeline, cat_attribs),
     ])
-    return full_df
+    # Prepare data for modeling
+    X = full_df[num_attribs + cat_attribs]
+    y = full_df["exo"]
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    X_train_prepared = preprocessing.fit_transform(X_train)
+    X_test_prepared = preprocessing.transform(X_test)
+    return X_train_prepared, X_test_prepared, y_train, y_test, preprocessing

@@ -1,7 +1,63 @@
+import pdb
 import pandas as pd
 import numpy as np
 # Calculations for Feature Extraction from Project_Guide
 
+def extract_features(df):
+    # Group by relevant columns
+    group_cols = ['BodyPart', 'run_num', 'gender', 'exo']  # adapt as needed
+    feature_rows = []
+    for group_vals, group in df.groupby(group_cols):
+        # Accelerometer features
+        a_x, a_y, a_z = group['ACC X (G)_filtered'], group['ACC Y (G)_filtered'], group['ACC Z (G)_filtered']
+        a_mag = np.sqrt(a_x**2 + a_y**2 + a_z**2)
+        accel_peak = np.max(a_mag)
+        accel_mean = np.mean(a_mag)
+        accel_total = np.sqrt(np.mean(a_x**2) + np.mean(a_y**2) + np.mean(a_z**2))
+        accel_range = np.max(a_mag) - np.min(a_mag)
+
+        # Gyroscope features
+        w_x, w_y, w_z = group['GYRO X (deg/s)_filtered'], group['GYRO Y (deg/s)_filtered'], group['GYRO Z (deg/s)_filtered']
+        w_mag = np.sqrt(w_x**2 + w_y**2 + w_z**2)
+        gyro_peak = np.max(w_mag)
+        gyro_mean = np.mean(w_mag)
+        gyro_total = np.sqrt(np.mean(w_x**2) + np.mean(w_y**2) + np.mean(w_z**2))
+        gyro_range = np.max(w_mag) - np.min(w_mag)
+
+        # EMG features (filtered)
+        emg = group['EMG_MilliVolts_filtered']
+        emg_mean = np.mean(emg)
+        emg_max = np.max(emg)
+        emg_min = np.min(emg)
+        emg_std = np.std(emg)
+        emg_rms = np.sqrt(np.mean(emg**2))
+
+        # Build feature dict
+        feature_dict = {
+            'BodyPart': group_vals[0],
+            'run_num': group_vals[1],
+            'gender': group_vals[2],
+            'exo': group_vals[3],
+            'accel_peak': accel_peak,
+            'accel_mean': accel_mean,
+            'accel_total': accel_total,
+            'accel_range': accel_range,
+            'gyro_peak': gyro_peak,
+            'gyro_mean': gyro_mean,
+            'gyro_total': gyro_total,
+            'gyro_range': gyro_range,
+            'emg_mean': emg_mean,
+            'emg_max': emg_max,
+            'emg_min': emg_min,
+            'emg_std': emg_std,
+            'emg_rms': emg_rms,
+        }
+        feature_rows.append(feature_dict)
+    #THIS IS LAME (only 17 rows) BRUH
+    # Return as a new DataFrame
+    return pd.DataFrame(feature_rows)
+
+#old funcs 
 def compute_emg_features(df):
     signal = df['EMG_MilliVolts']
     return {

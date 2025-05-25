@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
-from dataCleaning import read_run, column_clean, preprocessing
+from dataCleaning import read_run, column_clean, preprocessing_actions
 from dataCleaning import create_sensor_col
 from resampling import downsample
-from feature_extraction import compute_emg_features, compute_accel_features, compute_gyro_features
+from feature_extraction import extract_features
+from filtering import bandpass_filter_emg, lowpass_filter_imu
 
 import pdb
 
@@ -30,15 +31,17 @@ def overall_cleaning():
     dfs = [df_p3_exo, df_p3_noexo, df_p4_exo, df_p4_noexo] #jack's list for the data cleaning he does later.
     combined_df = pd.concat(dfs, ignore_index=True)
     # Run functions to extract features for each dataframe
-    pdb.set_trace() 
-    emg_features = compute_emg_features(combined_df)
-    accel_features = compute_accel_features(combined_df)
-    gyro_features = compute_gyro_features(combined_df)  # feature_sets = []
-    #do this on EMG cols:
-    # bandpass_filter_emg(df)
-    #on IMU cols: 
-    # lowpass_filter_imu(df)
+    #filter out IMU and EMG outliers using filters: 
+    imu_cols = ['ACC X (G)', 'ACC Y (G)', 'ACC Z (G)', 'GYRO X (deg/s)', 'GYRO Y (deg/s)', 'GYRO Z (deg/s)']
+    for col in imu_cols:
+        combined_df[col + '_filtered'] = combined_df.groupby(['BodyPart', 'run_num', 'gender', 'exo'])[col].transform(lowpass_filter_imu)
+    combined_df['EMG_MilliVolts_filtered'] = combined_df.groupby(['BodyPart', 'run_num', 'gender', 'exo'])['EMG_MilliVolts'].transform(bandpass_filter_emg)
     
+    features_df = extract_features(combined_df)
+    #machine learning on combined_df
+    #change the next line to call on features_df instead of combined_df when extracting features is fixed to return more data
+    X_train_prepared, X_test_prepared, y_train, y_test, preprocessing_pipeline = preprocessing_actions(combined_df)
+    #Return preprocessing_pipeline bc want to preprocess (scale, encode, etc.) any new or test data the same way as your training data.
     return combined_df
 
 def main():
