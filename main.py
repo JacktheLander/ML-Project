@@ -4,7 +4,7 @@ from dataCleaning import read_run, column_clean, preprocessing
 from dataCleaning import create_sensor_col, standardize_time_series
 import pdb
 
-def main_cleaning():
+def overall_cleaning():
     df_p3_exo = read_run("P3_Exo_1_0.csv") # 2nd run, male
     df_p3_noexo = read_run("P3_NoExo_1_0.csv") # first run, male
     df_p4_exo = read_run("P4_Exo_1_0.csv") # 1st run female
@@ -15,11 +15,10 @@ def main_cleaning():
     df_p4_exo = column_clean(df_p4_exo)
     df_p4_noexo = column_clean(df_p4_noexo)
     #upsample IMU to match EMG
-    standardize_time_series(df_p3_exo)
-    standardize_time_series(df_p3_noexo)
-    standardize_time_series(df_p4_exo)
-    standardize_time_series(df_p4_noexo)
-
+    df_p3_exo = standardize_time_series(df_p3_exo)
+    df_p3_noexo = standardize_time_series(df_p3_noexo)
+    df_p4_exo = standardize_time_series(df_p4_exo)
+    df_p4_noexo = standardize_time_series(df_p4_noexo)
     df_p3_exo = create_sensor_col(df_p3_exo, run_num = 2, gender = 'male', exo=True)
     df_p3_noexo = create_sensor_col(df_p3_noexo, run_num = 1, gender = 'male', exo=False)
     df_p4_exo = create_sensor_col(df_p4_exo, run_num = 1, gender = 'female', exo=True)

@@ -1,3 +1,5 @@
+import pandas as pd
+import numpy as np
 # Calculations for Feature Extraction from Project_Guide
 def compute_emg_features(signal):
     return {
