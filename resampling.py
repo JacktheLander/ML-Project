@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import pdb 
+
 def upsample(df):
     IMU_cols = [
        'RDelt_ACC X (G)', 'RDelt_ACC Y (G)', 'RDelt_ACC Z (G)', 'RDelt_GYRO X (deg/s)',
@@ -27,12 +29,28 @@ def upsample(df):
 
 def downsample(df):
   EMG_cols = ['RDelt_EMG_MilliVolts', 'LDelt_EMG_MilliVolts', 'RBicep_EMG_MilliVolts', 'LBicep_EMG_MilliVolts']
-  
+  IMU_cols = [
+    'RDelt_ACC X (G)', 'RDelt_ACC Y (G)', 'RDelt_ACC Z (G)', 'RDelt_GYRO X (deg/s)', 'RDelt_GYRO Y (deg/s)', 'RDelt_GYRO Z (deg/s)',
+    'LDelt_ACC X (G)', 'LDelt_ACC Y (G)', 'LDelt_ACC Z (G)', 'LDelt_GYRO X (deg/s)', 'LDelt_GYRO Y (deg/s)', 'LDelt_GYRO Z (deg/s)',
+    'RBicep_ACC X (G)', 'RBicep_ACC Y (G)', 'RBicep_ACC Z (G)', 'RBicep_GYRO X (deg/s)', 'RBicep_GYRO Y (deg/s)', 'RBicep_GYRO Z (deg/s)',
+    'LBicep_ACC X (G)', 'LBicep_ACC Y (G)', 'LBicep_ACC Z (G)', 'LBicep_GYRO X (deg/s)', 'LBicep_GYRO Y (deg/s)', 'LBicep_GYRO Z (deg/s)'
+  ]
   df['EMG_TimeSeries'] = pd.to_numeric(df['EMG_TimeSeries'])
+  for col in df.columns:
+    # Optionally skip time columns if you want to preserve them as objects/strings
+    if "TimeSeries" in col:
+        continue
+    df[col] = pd.to_numeric(df[col], errors='coerce')
   df['time'] = pd.to_timedelta(df['EMG_TimeSeries'], unit='s')
   df = df.set_index('time')
-  
   df[EMG_cols] = df[EMG_cols].resample('6.75ms').asfreq()  # Scales these columns to be the same length as IMU data
+  df[EMG_cols] = df[EMG_cols].interpolate(method='linear')
+  df[EMG_cols] = df[EMG_cols].fillna(method='bfill').fillna(method='ffill') #back fill and forward fill all Nans.
+  # Find the last index where at least one IMU value is real
+  last_idx = df[IMU_cols].last_valid_index()
+  # Trim DataFrame to that index
+  df = df.loc[:last_idx]
+  df = df.reset_index() 
   return df
 
 ## If downsample using pandas.resample doesn't work, use this alternative function that uses the rows index

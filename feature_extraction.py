@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
 # Calculations for Feature Extraction from Project_Guide
-def compute_emg_features(signal):
+
+def compute_emg_features(df):
+    signal = df['EMG_MilliVolts']
     return {
         'mean': np.mean(signal),
         'max': np.max(signal),
@@ -10,7 +12,8 @@ def compute_emg_features(signal):
         'rms': np.sqrt(np.mean(signal**2))
     }
 
-def compute_accel_features(a_x, a_y, a_z):
+def compute_accel_features(df):
+    a_x = df['ACC X (G)'], a_y = df['ACC Y (G)'], a_z = df['ACC Z (G)']
     a_mag = np.sqrt(a_x**2 + a_y**2 + a_z**2)
     
     features = {
@@ -21,7 +24,8 @@ def compute_accel_features(a_x, a_y, a_z):
     }
     return features
 
-def compute_gyro_features(w_x, w_y, w_z):
+def compute_gyro_features(df):
+    w_x = df['GYRO X (deg/s)'], w_y = df['GYRO Y (deg/s)'], w_z = df['GYRO Z (deg/s)']
     w_mag = np.sqrt(w_x**2 + w_y**2 + w_z**2)
     
     features = {
@@ -31,23 +35,21 @@ def compute_gyro_features(w_x, w_y, w_z):
         'angular_vel_range': np.max(w_mag) - np.min(w_mag)
     }
     return features 
+    # fft_mean = mean(valid_freqs * valid_fft)
+    # fft_median = median(valid_freqs * valid_fft)
+    # fft_power = np.sum(valid_fft**2)
 
-
-        # fft_mean = mean(valid_freqs * valid_fft)
-        # fft_median = median(valid_freqs * valid_fft)
-        # fft_power = np.sum(valid_fft**2)
-
-        # feature_row = {
-        #     'emg_max': emg.max(),
-        #     'emg_min': emg.min(),
-        #     'emg_rms': np.sqrt(np.mean(emg**2)),
-        #     'acc_peak': np.linalg.norm(acc, axis=1).max(),
-        #     'acc_range': np.ptp(np.linalg.norm(acc, axis=1)),
-        #     'gyro_peak': np.linalg.norm(gyro, axis=1).max(),
-        #     'gyro_range': np.ptp(np.linalg.norm(gyro, axis=1)),
-        #     'emg_fft_mean_freq': fft_mean,
-        #     'emg_fft_median_freq': fft_median,
-        #     'emg_fft_power': fft_power,
-        #     'label': label,
-        #     'gender': gender
-        # }
+    # feature_row = {
+    #     'emg_max': emg.max(),
+    #     'emg_min': emg.min(),
+    #     'emg_rms': np.sqrt(np.mean(emg**2)),
+    #     'acc_peak': np.linalg.norm(acc, axis=1).max(),
+    #     'acc_range': np.ptp(np.linalg.norm(acc, axis=1)),
+    #     'gyro_peak': np.linalg.norm(gyro, axis=1).max(),
+    #     'gyro_range': np.ptp(np.linalg.norm(gyro, axis=1)),
+    #     'emg_fft_mean_freq': fft_mean,
+    #     'emg_fft_median_freq': fft_median,
+    #     'emg_fft_power': fft_power,
+    #     'label': label,
+    #     'gender': gender
+    # }

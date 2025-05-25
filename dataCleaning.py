@@ -4,6 +4,13 @@ import numpy as np
 import pdb 
 from modif_cols import tidy_emg_imu_as_measured 
 from resampling import upsample, downsample
+from scipy.signal import filtfilt, butter
+
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
 # Data Labels:
 # Label for EMG Data shared:
 #     Open CSV files to check what they look like. Use skiprows=5 and low_memory=False to load it properly (the top 5 rows are metadata)
@@ -67,23 +74,35 @@ def lowpass_filter_imu(signal, fs=148, cutoff=20, order=4):
     b, a = butter(order, normal_cutoff, btype='low')
     return filtfilt(b, a, signal)
 
-def standardize_time_series(df):
-    df = downsample(df)
-    return df
-
 #melting and stuff
 def create_sensor_col(df, run_num, gender, exo): 
     df_pivoted = tidy_emg_imu_as_measured(df)
     df_pivoted.columns = df_pivoted.columns.str.strip()
-    pdb.set_trace()
     df_pivoted = df_pivoted.reset_index()
-
     df_pivoted['gender'] = gender
     df_pivoted['run_num'] = run_num
     df_pivoted['exo'] = exo
     df_pivoted.to_csv("pivoted_df.csv")
     return df_pivoted
 
-
 def preprocessing(full_df):
-    pass
+    # num_attribs = ["longitude", "latitude", "housing_median_age", "total_rooms",
+    #             "total_bedrooms", "population", "households", "median_income"]
+    # cat_attribs = ["ocean_proximity"]
+    num_attribs = full_df.select_dtypes(include=['number']).columns.tolist()
+    cat_attribs = full_df.select_dtypes(include=['object', 'category', 'bool']).columns.tolist()
+    num_pipeline = Pipeline([
+    ("impute", SimpleImputer(strategy="median")),
+    ("standardize", StandardScaler()),
+    ])
+
+    cat_pipeline = Pipeline([
+    ("impute", SimpleImputer(strategy="most_frequent")),
+    ("oneHot", OneHotEncoder()),
+    ])
+
+    preprocessing = ColumnTransformer([
+    ("num", num_pipeline, num_attribs),
+    ("cat", cat_pipeline, cat_attribs),
+    ])
+    return full_df
