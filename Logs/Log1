@@ -1,0 +1,9 @@
+# Learning Rate = 0.01, Batch Size = 8
+
+Epoch [1/5], Loss: 0.613910
+Epoch [2/5], Loss: 0.562593
+Epoch [3/5], Loss: 0.544960
+Epoch [4/5], Loss: 0.533702
+Epoch [5/5], Loss: 0.526728
+Training Completed!
+Test Loss: 0.518708, Accuracy: 71.53%
