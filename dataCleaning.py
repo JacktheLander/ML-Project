@@ -8,7 +8,7 @@ from modif_cols import tidy_emg_imu_as_measured
 from resampling import upsample, downsample
 
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -73,7 +73,7 @@ def create_sensor_col(df, run_num, gender, exo):
     df_pivoted.to_csv("pivoted_df.csv")
     return df_pivoted
 
-def preprocessing_actions(full_df):
+def preprocessing_actions(full_df, neural_net=False):
     num_attribs = [
         'EMG_MilliVolts_filtered',
         'ACC X (G)_filtered',
@@ -89,12 +89,16 @@ def preprocessing_actions(full_df):
         'gender'
         #exo is the target variable
     ]
-
-    num_pipeline = Pipeline([
-        ("impute", SimpleImputer(strategy="median")),
-        ("standardize", StandardScaler()),
-    ])
-
+    if neural_net:
+        num_pipeline = Pipeline([
+            ("impute", SimpleImputer(strategy="median")),
+            ("standardize", MinMaxScaler()),
+        ])  
+    else:
+        num_pipeline = Pipeline([
+            ("impute", SimpleImputer(strategy="median")),
+            ("standardize", StandardScaler()),
+        ])
     cat_pipeline = Pipeline([
         ("impute", SimpleImputer(strategy="most_frequent")),
         ("oneHot", OneHotEncoder()),

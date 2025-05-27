@@ -5,9 +5,7 @@ from dataCleaning import create_sensor_col
 from resampling import downsample
 from feature_extraction import extract_features
 from filtering import bandpass_filter_emg, lowpass_filter_imu
-
-import pdb
-
+import pdb 
 def overall_cleaning():
     df_p3_exo = read_run("P3_Exo_1_0.csv") # 2nd run, male
     df_p3_noexo = read_run("P3_NoExo_1_0.csv") # first run, male
@@ -36,13 +34,13 @@ def overall_cleaning():
     for col in imu_cols:
         combined_df[col + '_filtered'] = combined_df.groupby(['BodyPart', 'run_num', 'gender', 'exo'])[col].transform(lowpass_filter_imu)
     combined_df['EMG_MilliVolts_filtered'] = combined_df.groupby(['BodyPart', 'run_num', 'gender', 'exo'])['EMG_MilliVolts'].transform(bandpass_filter_emg)
-    
-    features_df = extract_features(combined_df)
+    pdb.set_trace()
+    features_df = extract_features(combined_df) #TO-DO FIX
     #machine learning on combined_df
     #change the next line to call on features_df instead of combined_df when extracting features is fixed to return more data
     X_train_prepared, X_test_prepared, y_train, y_test, preprocessing_pipeline = preprocessing_actions(combined_df)
     #Return preprocessing_pipeline bc want to preprocess (scale, encode, etc.) any new or test data the same way as your training data.
-    return combined_df
+    return X_train_prepared, X_test_prepared, y_train, y_test, preprocessing_pipeline
 
 def main():
     final_df =  overall_cleaning()
